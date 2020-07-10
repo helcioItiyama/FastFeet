@@ -7,7 +7,7 @@
 This project was developed using ReactJS to simulate a logistic program where you can track who's delivering and who's the receiver, as well, as his contact and the delivery status.
 
 <p align="center">
-    <img alt ="homepage" src="https://github.com/helcioItiyama/FastFeet/blob/master/frontend/src/assets/demo%20(2).gif"/>
+    <img alt ="homepage" src="https://github.com/helcioItiyama/FastFeet/blob/master/frontend/src/assets/demo.gif"/>
 </p>
 
 ## :computer: TECHNOLOGIES USED FOR THIS PROJECT:
