@@ -1,13 +1,15 @@
+/* eslint-disable camelcase */
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import * as Yup from 'yup';
 import AsyncSelect from '~/components/AsyncSelect';
 import history from '~/services/history';
 import api from '~/services/api';
 import Title from '~/components/Title';
+import Input from '~/components/Input';
 import Wrapper from '~/components/InputWrapper';
 import { Container, InputOptions } from './styles';
 
@@ -19,16 +21,22 @@ const schema = Yup.object().shape({
 
 function DeliveriesForm() {
   const { id } = useParams();
-  const [delivery, setDelivery] = useState({});
-  const [defaultDeliverman, setDefaultDeliverman] = useState({});
+  const formRef = useRef(null);
 
   useEffect(() => {
     async function loadDelivery() {
       const { data } = await api.get(`delivery/${id}`);
-      setDelivery(data);
+      formRef.current.setData(data);
 
-      const response = await api.get(`recipients/${data.recipient_id}`);
-      setDefaultDeliverman({ label: response.data.name });
+      formRef.current.setFieldValue('recipient_id', {
+        value: data?.recipient_id,
+        label: data?.recipient?.name,
+      });
+
+      formRef.current.setFieldValue('deliverman_id', {
+        value: data?.deliverman_id,
+        label: data?.deliverman?.name,
+      });
     }
     if (id) {
       loadDelivery();
@@ -46,19 +54,23 @@ function DeliveriesForm() {
           deliverman_id,
           product,
         });
+        toast.success('Encomenda editada com sucesso');
       } else {
         await api.post('delivery', {
           recipient_id,
           deliverman_id,
           product,
         });
+        toast.success('Encomenda cadastrada com sucesso');
       }
-
-      toast.success('Entregador cadastrado com sucesso');
 
       history.push('/deliveries');
     } catch (error) {
-      toast.error('Não foi possível cadastrar entregador');
+      if (id) {
+        toast.error('Não foi possível editar a encomenda');
+      } else {
+        toast.error('Não foi possível cadastrar a encomenda');
+      }
     }
   };
 
@@ -90,7 +102,7 @@ function DeliveriesForm() {
 
   return (
     <Container>
-      <Form initialData={delivery} onSubmit={handleSubmit} schema={schema}>
+      <Form ref={formRef} onSubmit={handleSubmit} schema={schema}>
         <Title
           onHandleBack={handleBack}
           title={id ? 'Edição de Encomendas' : 'Cadastro de Encomendas'}
@@ -104,7 +116,6 @@ function DeliveriesForm() {
                 id="recipient"
                 name="recipient_id"
                 placeholder="escreva o nome do destinatário"
-                defaultValue={defaultDeliverman}
                 defaultOptions
                 loadOptions={filterRecipients}
               />

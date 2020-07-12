@@ -7,8 +7,18 @@ export function useOnClickOutside(ref, handler) {
     }
   };
 
+  const handleKeyPress = (e) => {
+    if (e.key === 'Escape') {
+      handler();
+    }
+  };
+
   useEffect(() => {
     document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    document.addEventListener('keydown', handleKeyPress);
+    return () => {
+      document.removeEventListener('click', handleClick);
+      document.removeEventListener('keydown', handleKeyPress);
+    };
   });
 }

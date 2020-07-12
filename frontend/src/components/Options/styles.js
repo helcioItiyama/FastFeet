@@ -8,6 +8,7 @@ export const Container = styled.span`
   padding: 8px;
   top: 0;
   right: 0;
+  min-width: 100px;
 
   div {
     display: flex;

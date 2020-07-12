@@ -28,6 +28,7 @@ function Recipients() {
   }, [search]);
 
   const handleSearch = (event) => {
+    event.preventDefault();
     setSearch(event.target.value);
   };
 
@@ -96,6 +97,7 @@ function Recipients() {
                       visible={visible && chose === id}
                       edit="Editar"
                       remove="Excluir"
+                      type="destinatário"
                       onHandleRemove={handleRemove}
                       pathName="recipients"
                       id={id}

@@ -24,8 +24,8 @@ function Routes() {
       <Route path="/edit/delivers/:id" isPrivate component={DeliverForm} />
 
       <Route path="/deliveries" isPrivate component={Deliveries} />
-      <Route path="/register/deliveries" isPrivate component={DeliveriesForm} />
-      <Route path="/edit/deliveries/:id" isPrivate component={DeliveriesForm} />
+      <Route path="/register/delivery" isPrivate component={DeliveriesForm} />
+      <Route path="/edit/delivery/:id" isPrivate component={DeliveriesForm} />
 
       <Route path="/problems" isPrivate component={Problems} />
     </Switch>

@@ -1,13 +1,14 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { useField } from '@rocketseat/unform';
+import { useField } from '@unform/core';
 import { MdAddAPhoto } from 'react-icons/md';
-import PropTypes from 'prop-types';
+import { useParams } from 'react-router-dom';
 import api from '~/services/api';
 
 import { Container } from './styles';
 
-function AvatarInput({ tag }) {
-  const { defaultValue, registerField } = useField('avatar');
+function AvatarInput() {
+  const { id: urlId } = useParams();
+  const { fieldName, defaultValue, registerField } = useField('avatar_id');
 
   const [file, setFile] = useState(defaultValue && defaultValue.id);
   const [preview, setPreview] = useState(defaultValue && defaultValue.url);
@@ -15,9 +16,19 @@ function AvatarInput({ tag }) {
   const ref = useRef();
 
   useEffect(() => {
+    async function loadPhotoPreview() {
+      const { data } = await api.get(`delivers/${urlId}`);
+      setPreview(data.avatar?.url);
+    }
+    if (urlId) {
+      loadPhotoPreview();
+    }
+  }, []);
+
+  useEffect(() => {
     if (ref.current) {
       registerField({
-        name: 'avatar_id',
+        name: fieldName,
         ref: ref.current,
         path: 'dataset.file',
       });
@@ -41,7 +52,7 @@ function AvatarInput({ tag }) {
             size={50}
             style={{ opacity: '0.2', marginTop: '30px' }}
           />
-          <h4>{tag} foto</h4>
+          <h4>Adicionar foto</h4>
         </div>
       ) : (
         <div>
@@ -67,7 +78,3 @@ function AvatarInput({ tag }) {
 }
 
 export default AvatarInput;
-
-AvatarInput.propTypes = {
-  tag: PropTypes.string.isRequired,
-};

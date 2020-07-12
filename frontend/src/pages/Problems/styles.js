@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const Container = styled.div`
-  div {
+  header {
     width: 900px;
     margin: 0 auto;
     padding-top: 40px;
@@ -10,4 +10,11 @@ export const Container = styled.div`
       margin-bottom: 20px;
     }
   }
+`;
+
+export const Description = styled.div`
+  white-space: nowrap;
+  width: 700px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;

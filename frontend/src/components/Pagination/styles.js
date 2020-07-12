@@ -9,6 +9,7 @@ export const Container = styled.div`
 
   button {
     margin-top: 10px;
+    margin-bottom: 20px;
     padding: 6px 14px;
     border: none;
     border-radius: 4px;

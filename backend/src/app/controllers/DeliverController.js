@@ -40,7 +40,18 @@ class DeliverController {
   }
 
   async findOne(req, res) {
-    const delivers = await Deliver.findByPk(req.params.id);
+    const delivers = await Deliver.findOne({
+      where: {
+        id: req.params.id,
+      },
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'url', 'path'],
+        },
+      ],
+    });
 
     if (!delivers) {
       return res.status(400).json({ error: 'Deliveryman not found' });

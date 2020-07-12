@@ -9,7 +9,6 @@ class CancellationMail {
 
   async handle({ data }) {
     const { delivery } = data;
-
     let date;
 
     if (delivery.start_date === null) {

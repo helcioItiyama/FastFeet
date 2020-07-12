@@ -1,12 +1,13 @@
 /* eslint-disable camelcase */
 import React, { useState, useEffect, useRef } from 'react';
-import { isAfter, parseISO } from 'date-fns';
+import { isAfter, parseISO, format } from 'date-fns';
 import api from '~/services/api';
 import history from '~/services/history';
 import Form from '~/components/Form';
 import Table from '~/components/Table';
 import Options from '~/components/Options';
 import Pagination from '~/components/Pagination';
+import DeliveriesDetails from './DeliveriesDetails';
 import { useOnClickOutside } from '~/utils/hooks';
 
 function Deliveries() {
@@ -15,16 +16,20 @@ function Deliveries() {
   const [search, setSearch] = useState('');
   const [chose, setChose] = useState('');
   const [visible, setVisible] = useState(false);
+  const [choseModal, setChoseModal] = useState('');
+  const [isModal, setIsModal] = useState(false);
 
   const wrapperRef = useRef();
+  const modalRef = useRef();
 
   async function loadDeliveries() {
     const response = await api.get('delivery', {
       params: { page, q: search },
     });
 
-    const deliveryDetails = response.data.map((delivery) => {
-      const { canceled_at, start_date, end_date } = delivery;
+    const deliveryDetails = await response.data.map((delivery) => {
+      // eslint-disable-next-line prefer-const
+      let { canceled_at, start_date, end_date } = delivery;
 
       const isFetched = isAfter(new Date(), parseISO(start_date));
       let status = '';
@@ -38,7 +43,10 @@ function Deliveries() {
       } else {
         status = 'pendente';
       }
-      return { ...delivery, status };
+
+      start_date = start_date && format(parseISO(start_date), 'dd/MM/yyyy');
+      end_date = end_date && format(parseISO(end_date), 'dd/MM/yyyy');
+      return { ...delivery, status, start_date, end_date };
     });
     setDeliveries(deliveryDetails);
   }
@@ -58,6 +66,7 @@ function Deliveries() {
   };
 
   const handleSearch = (event) => {
+    event.preventDefault();
     setSearch(event.target.value);
   };
 
@@ -71,6 +80,12 @@ function Deliveries() {
     }
   });
 
+  useOnClickOutside(modalRef, () => {
+    if (isModal) {
+      setIsModal(false);
+    }
+  });
+
   const handleShowOptions = (id) => {
     setChose(id);
     setVisible(!visible);
@@ -78,6 +93,11 @@ function Deliveries() {
 
   const handleRemove = () => {
     loadDeliveries();
+  };
+
+  const handleCheck = (id) => {
+    setChoseModal(id);
+    setIsModal(!isModal);
   };
 
   return (
@@ -175,6 +195,13 @@ function Deliveries() {
                     </p>
                   </td>
                   <td>
+                    <DeliveriesDetails
+                      onRef={modalRef}
+                      modal={isModal && choseModal === id}
+                      details={delivery}
+                    />
+                  </td>
+                  <td>
                     <button type="button" onClick={() => handleShowOptions(id)}>
                       ...
                     </button>
@@ -185,7 +212,9 @@ function Deliveries() {
                       edit="Editar"
                       remove="Excluir"
                       onHandleRemove={handleRemove}
-                      pathName="deliveries"
+                      onHandleCheck={handleCheck}
+                      type="encomenda"
+                      pathName="delivery"
                       id={id}
                     />
                   </td>
@@ -194,6 +223,7 @@ function Deliveries() {
             );
           })}
       </Table>
+
       <Pagination
         onHandleClick={handleChangePage}
         page={page}

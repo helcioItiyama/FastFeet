@@ -1,12 +1,13 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
-import { Form, Input } from '@rocketseat/unform';
+import { Form } from '@unform/web';
 import { useParams } from 'react-router-dom';
 import * as Yup from 'yup';
 import history from '~/services/history';
 import api from '~/services/api';
 import Title from '~/components/Title';
+import Input from '~/components/Input';
 import Wrapper from '~/components/InputWrapper';
 import AvatarInput from '~/pages/Delivers/AvatarInput';
 
@@ -20,13 +21,15 @@ const schema = Yup.object().shape({
 
 function DeliverForm() {
   const { id } = useParams();
-
-  const [deliverman, setDeliverman] = useState({});
+  const formRef = useRef(null);
 
   useEffect(() => {
     async function loadDeliverman() {
       const { data } = await api.get(`delivers/${id}`);
-      setDeliverman(data);
+      formRef.current.setData({
+        name: data.name,
+        email: data.email,
+      });
     }
     if (id) {
       loadDeliverman();
@@ -43,18 +46,23 @@ function DeliverForm() {
           email,
           avatar_id,
         });
+        toast.success('Entregador editado com sucesso');
       } else {
         await api.post('delivers', {
           name,
           email,
           avatar_id,
         });
+        toast.success('Entregador cadastrado com sucesso');
       }
-      toast.success('Entregador cadastrado com sucesso');
 
       history.push('/delivers');
     } catch (error) {
-      toast.error('Não foi possível cadastrar entregador');
+      if (id) {
+        toast.error('Não foi possível editar entregador');
+      } else {
+        toast.error('Não foi possível cadastrar entregador');
+      }
     }
   };
 
@@ -64,14 +72,14 @@ function DeliverForm() {
 
   return (
     <Container>
-      <Form initialData={deliverman} onSubmit={handleSubmit} schema={schema}>
+      <Form ref={formRef} onSubmit={handleSubmit} schema={schema}>
         <Title
           onHandleBack={handleBack}
           title={id ? 'Edição de Entregadores' : 'Cadastro de Entregadores'}
         />
 
         <Wrapper>
-          <AvatarInput name="avatar_id" tag={id ? 'Editar' : 'Adicionar'} />
+          <AvatarInput name="avatar_id" />
 
           <label htmlFor="name">
             Nome

@@ -30,7 +30,7 @@ export const Container = styled.table`
       td {
         padding: 14px;
 
-        img {
+        > img {
           width: 40px;
           height: 40px;
           object-fit: cover;

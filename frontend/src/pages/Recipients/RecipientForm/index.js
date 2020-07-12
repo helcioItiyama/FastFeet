@@ -55,6 +55,7 @@ function RecipientForm() {
           city,
           zip_code,
         });
+        toast.success('Destinatário editado com sucesso');
       } else {
         await api.post('recipients', {
           name,
@@ -65,11 +66,15 @@ function RecipientForm() {
           city,
           zip_code,
         });
+        toast.success('Destinatário cadastrado com sucesso');
       }
-      toast.success('Entregador cadastrado com sucesso');
       history.push('/recipients');
     } catch (error) {
-      toast.error('Não foi possível cadastrar entregador');
+      if (id) {
+        toast.error('Não foi possível editar destinatário');
+      } else {
+        toast.error('Não foi possível cadastrar destinatário');
+      }
     }
   };
 

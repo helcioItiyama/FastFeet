@@ -26,6 +26,7 @@ function Delivers() {
   }, [search]);
 
   const handleSearch = (event) => {
+    event.preventDefault();
     setSearch(event.target.value);
   };
 
@@ -95,6 +96,7 @@ function Delivers() {
                       edit="Editar"
                       remove="Excluir"
                       onHandleRemove={handleRemove}
+                      type="entregador"
                       pathName="delivers"
                       id={id}
                     />

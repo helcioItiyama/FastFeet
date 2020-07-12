@@ -30,6 +30,7 @@ class DeliveryProblemController {
               model: Recipient,
               as: 'recipient',
               attributes: ['name'],
+              paranoid: false,
             },
           ],
         },
@@ -60,6 +61,7 @@ class DeliveryProblemController {
               model: Recipient,
               as: 'recipient',
               attributes: ['name'],
+              paranoid: false,
             },
           ],
         },
@@ -93,34 +95,44 @@ class DeliveryProblemController {
     return res.json(deliveryProblem);
   }
 
-  async cancel_delivery(req, res) {
-    const delivery = await Delivery.findByPk(req.params.id, {
+  async cancel(req, res) {
+    const problem = await DeliveryProblem.findByPk(req.params.id, {
       include: [
         {
-          model: Deliver,
-          as: 'deliverman',
-          attributes: ['name', 'email'],
-        },
-        {
-          model: Recipient,
-          as: 'recipient',
-          attributes: ['name', 'street', 'number', 'city', 'state'],
+          model: Delivery,
+          as: 'delivery',
+          attributes: ['canceled_at', 'product'],
+          include: [
+            {
+              model: Deliver,
+              as: 'deliverman',
+              attributes: ['name', 'email', 'id'],
+            },
+            {
+              model: Recipient,
+              as: 'recipient',
+              attributes: ['name', 'street', 'number', 'city', 'state'],
+              paranoid: false,
+            },
+          ],
         },
       ],
     });
 
-    if (!delivery) {
+    if (!problem) {
       return res.status(400).json({ error: 'Delivery not found' });
     }
+
+    const delivery = await Delivery.findByPk(problem.delivery_id);
 
     delivery.canceled_at = new Date();
     await delivery.save();
 
     await Queue.add(CancellationMail.key, {
-      delivery,
+      problem,
     });
 
-    return res.json(delivery);
+    return res.json(problem);
   }
 }
 

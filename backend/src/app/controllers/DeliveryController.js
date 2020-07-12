@@ -4,6 +4,7 @@ import { isBefore, parseISO, startOfHour } from 'date-fns';
 
 import Delivery from '../models/Delivery';
 import Deliver from '../models/Deliver';
+import Signature from '../models/Signature';
 import Recipient from '../models/Recipient';
 import File from '../models/File';
 import Queue from '../../lib/Queue';
@@ -47,6 +48,11 @@ class DeliveryController {
             ],
             paranoid: false,
           },
+          {
+            model: Signature,
+            as: 'signature',
+            attributes: ['id', 'path', 'url'],
+          },
         ],
       });
 
@@ -87,6 +93,12 @@ class DeliveryController {
             'city',
             'zip_code',
           ],
+          paranoid: false,
+        },
+        {
+          model: Signature,
+          as: 'signature',
+          attributes: ['id', 'path', 'url'],
         },
       ],
     });
@@ -95,7 +107,22 @@ class DeliveryController {
   }
 
   async findOne(req, res) {
-    const delivery = await Delivery.findByPk(req.params.id);
+    const delivery = await Delivery.findOne({
+      where: { id: req.params.id },
+      include: [
+        {
+          model: Deliver,
+          as: 'deliverman',
+          attributes: ['name'],
+        },
+        {
+          model: Recipient,
+          as: 'recipient',
+          attributes: ['name'],
+          paranoid: false,
+        },
+      ],
+    });
 
     if (!delivery) {
       return res.status(400).json({ error: 'Delivery not found' });
@@ -239,15 +266,14 @@ class DeliveryController {
     return res.json(delivery);
   }
 
-  async cancel(req, res) {
+  async delete(req, res) {
     const delivery = await Delivery.findByPk(req.params.id);
 
     if (!delivery) {
       return res.status(400).json({ error: 'Delivery not found' });
     }
-    delivery.canceled_at = new Date();
-    await delivery.save();
-    return res.json();
+    await delivery.destroy();
+    return res.json({ message: 'Delivery deleted with success' });
   }
 }
 
