@@ -15,7 +15,7 @@ export const Container = styled.div`
 
   > div {
     width: 600px;
-    height: 480px;
+    min-height: 480px;
     padding: 60px 120px 50px;
     background: #fff;
     z-index: 2;

@@ -13,16 +13,18 @@ function Problems() {
   const wrapperRef = useRef();
   const [problems, setProblems] = useState([]);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState();
   const [chose, setChose] = useState('');
   const [visible, setVisible] = useState(false);
   const [isModal, setIsModal] = useState(false);
   const [choseModal, setChoseModal] = useState('');
 
   async function loadProblems() {
-    const response = await api.get(`delivery/problems`, {
+    const { data } = await api.get(`delivery/problems`, {
       params: { page },
     });
-    setProblems(response.data);
+    setProblems(data.deliveries);
+    setTotalPages(Math.ceil(data.count / 6));
   }
 
   useEffect(() => {
@@ -39,17 +41,9 @@ function Problems() {
     }
   };
 
-  useOnClickOutside(modalRef, () => {
-    if (isModal) {
-      setIsModal(false);
-    }
-  });
+  useOnClickOutside(modalRef, () => isModal && setIsModal(false));
 
-  useOnClickOutside(wrapperRef, () => {
-    if (visible) {
-      setVisible(false);
-    }
-  });
+  useOnClickOutside(wrapperRef, () => visible && setVisible(false));
 
   const handleShowOptions = (id) => {
     setChose(id);
@@ -81,37 +75,42 @@ function Problems() {
 
         {problems &&
           problems.map((problem) => {
-            const { id, description } = problem;
+            const { id, description, delivery } = problem;
             return (
               <tbody key={id}>
-                <tr>
-                  <td>{id}</td>
-                  <td>
-                    <Description>{description}</Description>
-                  </td>
-                  <td>
-                    <ProblemDetails
-                      onRef={modalRef}
-                      modal={isModal && choseModal === id}
-                      details={problem}
-                    />
-                  </td>
-                  <td>
-                    <button type="button" onClick={() => handleShowOptions(id)}>
-                      ...
-                    </button>
-                    <Options
-                      onRef={wrapperRef}
-                      visible={visible && chose === id}
-                      check="Visualizar"
-                      remove="Cancelar encomenda"
-                      onHandleRemove={handleRemove}
-                      onHandleCheck={handleCheck}
-                      pathName="problem"
-                      id={id}
-                    />
-                  </td>
-                </tr>
+                {!delivery?.canceled_at && (
+                  <tr>
+                    <td>{id}</td>
+                    <td>
+                      <Description>{description}</Description>
+                    </td>
+                    <td>
+                      <ProblemDetails
+                        onRef={modalRef}
+                        modal={isModal && choseModal === id}
+                        details={problem}
+                      />
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => handleShowOptions(id)}
+                      >
+                        ...
+                      </button>
+                      <Options
+                        onRef={wrapperRef}
+                        visible={visible && chose === id}
+                        check="Visualizar"
+                        remove="Cancelar encomenda"
+                        onHandleRemove={handleRemove}
+                        onHandleCheck={handleCheck}
+                        pathName="problem"
+                        id={id}
+                      />
+                    </td>
+                  </tr>
+                )}
               </tbody>
             );
           })}
@@ -119,7 +118,7 @@ function Problems() {
       <Pagination
         onHandleClick={handleChangePage}
         page={page}
-        content={problems}
+        totalPages={totalPages}
       />
     </Container>
   );

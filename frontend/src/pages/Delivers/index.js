@@ -4,10 +4,13 @@ import history from '~/services/history';
 import { useOnClickOutside } from '~/utils/hooks';
 import Form from '~/components/Form';
 import Table from '~/components/Table';
+import Pagination from '~/components/Pagination';
 import Options from '~/components/Options';
 
 function Delivers() {
   const [delivermen, setDelivermen] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState();
   const [search, setSearch] = useState('');
   const [chose, setChose] = useState('');
   const [visible, setVisible] = useState(false);
@@ -15,15 +18,16 @@ function Delivers() {
   const wrapperRef = useRef();
 
   async function loadDelivermen() {
-    const response = await api.get('delivers', {
-      params: { q: search },
+    const { data } = await api.get('delivers', {
+      params: { q: search, page },
     });
-    setDelivermen(response.data);
+    setDelivermen(data.delivers);
+    setTotalPages(Math.ceil(data.count / 6));
   }
 
   useEffect(() => {
     loadDelivermen();
-  }, [search]);
+  }, [page, search]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -34,11 +38,7 @@ function Delivers() {
     history.push('/register/delivers');
   };
 
-  useOnClickOutside(wrapperRef, () => {
-    if (visible) {
-      setVisible(false);
-    }
-  });
+  useOnClickOutside(wrapperRef, () => visible && setVisible(false));
 
   const handleShowOptions = (id) => {
     setChose(id);
@@ -47,6 +47,16 @@ function Delivers() {
 
   const handleRemove = () => {
     loadDelivermen();
+  };
+
+  const handleChangePage = (button) => {
+    if (button === 'decrement') {
+      if (page <= 1) return;
+      setPage(page - 1);
+    } else if (button === 'increment') {
+      if (delivermen.length < 6) return;
+      setPage(page + 1);
+    }
   };
 
   return (
@@ -68,8 +78,7 @@ function Delivers() {
         </thead>
 
         {delivermen &&
-          delivermen.map((deliverman) => {
-            const { id, name, email, avatar } = deliverman;
+          delivermen.map(({ id, name, email, avatar }) => {
             return (
               <tbody key={id}>
                 <tr>
@@ -106,6 +115,11 @@ function Delivers() {
             );
           })}
       </Table>
+      <Pagination
+        onHandleClick={handleChangePage}
+        page={page}
+        totalPages={totalPages}
+      />
     </>
   );
 }

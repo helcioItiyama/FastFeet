@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
 
-export function useOnClickOutside(ref, handler) {
+export function useOnClickOutside(ref, callback) {
   const handleClick = (e) => {
     if (ref.current && !ref.current.contains(e.target)) {
-      handler();
+      callback();
     }
   };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Escape') {
-      handler();
+      callback();
     }
   };
 

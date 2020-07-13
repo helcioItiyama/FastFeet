@@ -14,10 +14,13 @@ class DeliveryController {
   async list(req, res) {
     const { page = 1, q } = req.query;
 
-    let deliveries;
-
-    if (!q) {
-      deliveries = await Delivery.findAll({
+    if (q) {
+      const { count, rows: deliveries } = await Delivery.findAndCountAll({
+        where: {
+          product: {
+            [Op.iLike]: `${q}%`,
+          },
+        },
         order: ['start_date'],
         limit: 6,
         offset: (page - 1) * 6,
@@ -56,18 +59,13 @@ class DeliveryController {
         ],
       });
 
-      return res.json(deliveries);
+      return res.json({ deliveries, count });
     }
 
-    deliveries = await Delivery.findAll({
-      where: {
-        product: {
-          [Op.iLike]: `${q}%`,
-        },
-      },
-      order: ['start_date'],
+    const { count, rows: deliveries } = await Delivery.findAndCountAll({
       limit: 6,
       offset: (page - 1) * 6,
+      order: ['start_date'],
       include: [
         {
           model: Deliver,
@@ -103,7 +101,7 @@ class DeliveryController {
       ],
     });
 
-    return res.json(deliveries);
+    return res.json({ count, deliveries });
   }
 
   async findOne(req, res) {

@@ -14,7 +14,7 @@ export const Container = styled.div`
 
 export const Description = styled.div`
   white-space: nowrap;
-  width: 700px;
+  width: 600px;
   overflow: hidden;
   text-overflow: ellipsis;
 `;

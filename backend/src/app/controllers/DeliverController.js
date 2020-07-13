@@ -5,11 +5,10 @@ import Deliver from '../models/Deliver';
 
 class DeliverController {
   async list(req, res) {
-    const { q } = req.query;
-    let delivers;
+    const { page = 1, q } = req.query;
 
     if (!q) {
-      delivers = await Deliver.findAll({
+      const { count, rows: delivers } = await Deliver.findAndCountAll({
         include: [
           {
             model: File,
@@ -18,16 +17,20 @@ class DeliverController {
           },
         ],
         order: ['id'],
+        limit: 6,
+        offset: (page - 1) * 6,
       });
-      return res.json(delivers);
+      return res.json({ delivers, count });
     }
 
-    delivers = await Deliver.findAll({
+    const { count, rows: delivers } = await Deliver.findAndCountAll({
       where: {
         name: {
           [Op.iLike]: `${q}%`,
         },
       },
+      limit: 6,
+      offset: (page - 1) * 6,
       include: [
         {
           model: File,
@@ -36,7 +39,7 @@ class DeliverController {
         },
       ],
     });
-    return res.json(delivers);
+    return res.json({ delivers, count });
   }
 
   async findOne(req, res) {

@@ -28,7 +28,7 @@ export const Container = styled.table`
       background: #fff;
 
       td {
-        padding: 14px;
+        padding: 10px;
 
         > img {
           width: 40px;

@@ -9,12 +9,15 @@ import Options from '~/components/Options';
 import Pagination from '~/components/Pagination';
 import DeliveriesDetails from './DeliveriesDetails';
 import { useOnClickOutside } from '~/utils/hooks';
+import { Figure } from './styles';
 
 function Deliveries() {
   const [deliveries, setDeliveries] = useState([]);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState();
   const [search, setSearch] = useState('');
   const [chose, setChose] = useState('');
+  const [problems, setProblems] = useState([]);
   const [visible, setVisible] = useState(false);
   const [choseModal, setChoseModal] = useState('');
   const [isModal, setIsModal] = useState(false);
@@ -23,11 +26,13 @@ function Deliveries() {
   const modalRef = useRef();
 
   async function loadDeliveries() {
-    const response = await api.get('delivery', {
+    const { data } = await api.get('delivery', {
       params: { page, q: search },
     });
 
-    const deliveryDetails = await response.data.map((delivery) => {
+    setTotalPages(Math.ceil(data.count / 6));
+
+    const deliveryDetails = await data.deliveries.map((delivery) => {
       // eslint-disable-next-line prefer-const
       let { canceled_at, start_date, end_date } = delivery;
 
@@ -52,6 +57,14 @@ function Deliveries() {
   }
 
   useEffect(() => {
+    async function loadProblems() {
+      const { data } = await api.get('/delivery/problems');
+      setProblems(data.deliveries);
+    }
+    loadProblems();
+  }, []);
+
+  useEffect(() => {
     loadDeliveries();
   }, [page, search]);
 
@@ -71,20 +84,12 @@ function Deliveries() {
   };
 
   const handleRegister = () => {
-    history.push('/register/deliveries');
+    history.push('/register/delivery');
   };
 
-  useOnClickOutside(wrapperRef, () => {
-    if (visible) {
-      setVisible(false);
-    }
-  });
+  useOnClickOutside(wrapperRef, () => visible && setVisible(false));
 
-  useOnClickOutside(modalRef, () => {
-    if (isModal) {
-      setIsModal(false);
-    }
-  });
+  useOnClickOutside(modalRef, () => isModal && setIsModal(false));
 
   const handleShowOptions = (id) => {
     setChose(id);
@@ -124,60 +129,6 @@ function Deliveries() {
         {deliveries &&
           deliveries.map((delivery) => {
             const { id, product, recipient, deliverman, status } = delivery;
-            let style = {
-              borderRadius: '20px',
-              padding: '4px',
-              width: '100px',
-              textAlign: 'center',
-              display: 'inline-block',
-            };
-            let ball = {
-              borderRadius: '50%',
-              padding: '4px',
-              display: 'inline-block',
-              marginRight: '10px',
-            };
-            if (status === 'entregue') {
-              ball = {
-                ...ball,
-                background: '#009432',
-              };
-              style = {
-                ...style,
-                color: '#009432',
-                background: '#C4E538',
-              };
-            } else if (status === 'retirada') {
-              ball = {
-                ...ball,
-                background: '#3c40c6',
-              };
-              style = {
-                ...style,
-                color: '#3c40c6',
-                background: '#48dbfb',
-              };
-            } else if (status === 'cancelada') {
-              ball = {
-                ...ball,
-                background: '#ff3f34',
-              };
-              style = {
-                ...style,
-                color: '#ff3f34',
-                background: '#ffb8b8',
-              };
-            } else {
-              ball = {
-                ...ball,
-                background: '#ff9f1a',
-              };
-              style = {
-                ...style,
-                color: '#ff9f1a',
-                background: '#F8EFBA',
-              };
-            }
 
             return (
               <tbody key={id}>
@@ -189,16 +140,17 @@ function Deliveries() {
                   <td>{recipient?.city}</td>
                   <td>{recipient?.state}</td>
                   <td>
-                    <p style={style}>
-                      <span style={ball} />
+                    <Figure color={status}>
+                      <span color={status} />
                       {status}
-                    </p>
+                    </Figure>
                   </td>
                   <td>
                     <DeliveriesDetails
                       onRef={modalRef}
                       modal={isModal && choseModal === id}
                       details={delivery}
+                      problems={problems}
                     />
                   </td>
                   <td>
@@ -227,7 +179,7 @@ function Deliveries() {
       <Pagination
         onHandleClick={handleChangePage}
         page={page}
-        content={deliveries}
+        totalPages={totalPages}
       />
     </div>
   );

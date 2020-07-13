@@ -11,7 +11,7 @@ import Queue from '../../lib/Queue';
 class DeliveryProblemController {
   async listAll(req, res) {
     const { page = 1 } = req.query;
-    const deliveries = await DeliveryProblem.findAll({
+    const { count, rows: deliveries } = await DeliveryProblem.findAndCountAll({
       order: ['createdAt'],
       limit: 6,
       offset: (page - 1) * 6,
@@ -36,7 +36,7 @@ class DeliveryProblemController {
         },
       ],
     });
-    return res.json(deliveries);
+    return res.json({ deliveries, count });
   }
 
   async listOne(req, res) {

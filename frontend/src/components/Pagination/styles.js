@@ -6,6 +6,7 @@ export const Container = styled.div`
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
+  align-items: center;
 
   button {
     margin-top: 10px;
@@ -21,4 +22,10 @@ export const Container = styled.div`
       background: ${darken(0.1, '#006400')};
     }
   }
+`;
+
+export const Pages = styled.span`
+  font-size: 16px;
+  margin-right: 10px;
+  font-weight: ${(props) => (props.actualPage ? 'bold' : 'normal')};
 `;

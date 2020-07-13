@@ -1,15 +1,19 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable prefer-const */
 /* eslint-disable no-unused-expressions */
 import React, { useState, useEffect, useRef } from 'react';
 import history from '~/services/history';
 import Form from '~/components/Form';
 import Table from '~/components/Table';
+import Pagination from '~/components/Pagination';
 import Options from '~/components/Options';
 import { useOnClickOutside } from '~/utils/hooks';
 import api from '~/services/api';
 
 function Recipients() {
   const [recipients, setRecipients] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState();
   const [search, setSearch] = useState('');
   const [chose, setChose] = useState('');
   const [visible, setVisible] = useState(false);
@@ -17,15 +21,16 @@ function Recipients() {
   const wrapperRef = useRef(); // ref to options modal
 
   async function loadRecipients() {
-    const response = await api.get('recipients', {
-      params: { q: search },
+    const { data } = await api.get('recipients', {
+      params: { q: search, page },
     });
-    setRecipients(response.data);
+    setRecipients(data.recipients);
+    setTotalPages(Math.ceil(data.count / 6));
   }
 
   useEffect(() => {
     loadRecipients();
-  }, [search]);
+  }, [page, search]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -52,6 +57,16 @@ function Recipients() {
     loadRecipients();
   };
 
+  const handleChangePage = (button) => {
+    if (button === 'decrement') {
+      if (page <= 1) return;
+      setPage(page - 1);
+    } else if (button === 'increment') {
+      if (recipients.length < 6) return;
+      setPage(page + 1);
+    }
+  };
+
   return (
     <>
       <Form
@@ -70,44 +85,44 @@ function Recipients() {
         </thead>
 
         {recipients &&
-          recipients.map((recipient) => {
-            let {
-              id,
-              name,
-              street,
-              number,
-              complement,
-              state,
-              city,
-            } = recipient;
-
-            complement ? (complement += ',') : (complement = '');
-            return (
-              <tbody key={id}>
-                <tr>
-                  <td>{id}</td>
-                  <td>{name}</td>
-                  <td>{`${street}, ${number}, ${complement} ${city} - ${state}`}</td>
-                  <td>
-                    <button type="button" onClick={() => handleShowOptions(id)}>
-                      ...
-                    </button>
-                    <Options
-                      onRef={wrapperRef}
-                      visible={visible && chose === id}
-                      edit="Editar"
-                      remove="Excluir"
-                      type="destinatário"
-                      onHandleRemove={handleRemove}
-                      pathName="recipients"
-                      id={id}
-                    />
-                  </td>
-                </tr>
-              </tbody>
-            );
-          })}
+          recipients.map(
+            ({ id, name, street, number, complement, state, city }) => {
+              complement ? (complement += ',') : (complement = '');
+              return (
+                <tbody key={id}>
+                  <tr>
+                    <td>{id}</td>
+                    <td>{name}</td>
+                    <td>{`${street}, ${number}, ${complement} ${city} - ${state}`}</td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => handleShowOptions(id)}
+                      >
+                        ...
+                      </button>
+                      <Options
+                        onRef={wrapperRef}
+                        visible={visible && chose === id}
+                        edit="Editar"
+                        remove="Excluir"
+                        type="destinatário"
+                        onHandleRemove={handleRemove}
+                        pathName="recipients"
+                        id={id}
+                      />
+                    </td>
+                  </tr>
+                </tbody>
+              );
+            }
+          )}
       </Table>
+      <Pagination
+        onHandleClick={handleChangePage}
+        page={page}
+        totalPages={totalPages}
+      />
     </>
   );
 }

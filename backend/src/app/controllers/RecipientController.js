@@ -4,13 +4,12 @@ import Recipient from '../models/Recipient';
 
 class RecipientController {
   async list(req, res) {
-    const { q } = req.query;
-
-    let recipients;
-
+    const { page = 1, q } = req.query;
     if (!q) {
-      recipients = await Recipient.findAll({
+      const { count, rows: recipients } = await Recipient.findAndCountAll({
         order: [['id', 'ASC']],
+        limit: 6,
+        offset: (page - 1) * 6,
         attributes: [
           'id',
           'name',
@@ -22,16 +21,18 @@ class RecipientController {
           'zip_code',
         ],
       });
-      return res.json(recipients);
+      return res.json({ recipients, count });
     }
 
-    recipients = await Recipient.findAll({
+    const { count, rows: recipients } = await Recipient.findAndCountAll({
       where: {
         name: {
           [Op.iLike]: `${q}%`,
         },
       },
       order: [['id', 'ASC']],
+      limit: 6,
+      offset: (page - 1) * 6,
       attributes: [
         'id',
         'name',
@@ -43,7 +44,7 @@ class RecipientController {
         'zip_code',
       ],
     });
-    return res.json(recipients);
+    return res.json({ recipients, count });
   }
 
   async findOne(req, res) {
